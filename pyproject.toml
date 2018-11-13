@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "results"
+version = "0.1"
+description = "Don't get mad, get results"
+authors = ["Robert Lechte <rlechte@actu.org.au>", "Jason Giancono <jgiancono@actu.org.au>"]
+readme = 'README.md'
+
+[tool.poetry.dependencies]
+python = ">=3.7"
+psycopg2-binary = "*"
+logx = "*"
+csvx = "*"
+sqlbag = "*"
+sqlalchemy = ">=1.2.12"
+xlrd = "*"
+openpyxl = "*"
+tabulate = "*"
+markdown = "*"
+migra = "*"
+furl = "*"
+chardet = "*"
+pendulum = "*"
+
+[tool.poetry.dev-dependencies]
+pytest = "*"
+isort = "*"
+pyyaml = "*"
+black = "*"
+flake8 = "*"
+pytest-cov = "*"
