@@ -117,6 +117,7 @@ print(pivot.md)
 ```
 
 Output:
+
 ```
 |   year |   Auckland |    Dubai |   Hong Kong |   Kuala Lumpur |   Singapore |
 |-------:|-----------:|---------:|------------:|---------------:|------------:|
