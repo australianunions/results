@@ -22,6 +22,7 @@ jobs:
       - run:
           name: Install poetry
           command: |
+            sudo pip3 install --upgrade pip
             sudo pip3 install poetry
             poetry config settings.virtualenvs.create false
       - run:
