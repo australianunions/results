@@ -1,3 +1,5 @@
+import string
+
 INSERT = """
     insert into
         {table} ({colspec})
@@ -25,11 +27,22 @@ INSERT_UPSERT_DO_NOTHING = """
 """
 
 
+VALID = {k: None for k in (string.ascii_letters + string.digits + "_")}
+
+
+def valid(key):
+    clist = [_ for _ in list(key) if _ in VALID]
+    v = "".join(clist)
+    if v != key:
+        raise ValueError(f'invalid key: "{key}"')
+    return v
+
+
 def insert(s, table, rowslist, upsert_on=None):
     if not rowslist:
         raise ValueError("empty list of rows, nothing to upsert")
 
-    keys = rowslist[0].keys()
+    keys = [valid(k) for k in rowslist[0].keys()]
 
     colspec = ", ".join([f'"{k}"' for k in keys])
     valuespec = ", ".join(":{}".format(k) for k in keys)

@@ -108,6 +108,9 @@ def test_db(tmpdb):
     with raises(ValueError):
         other.insert("t", [])
 
+    with raises(ValueError):
+        other.insert("t", [{",x": 2, "y": "b"}])
+
     other.insert("t", [dict(x=2, y="b")])
 
     other.insert(
