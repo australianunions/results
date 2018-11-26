@@ -1,4 +1,5 @@
 import results
+from results.paging import recursive_comparison
 
 PAGING_QUERY = """
 select
@@ -88,3 +89,18 @@ def test_paging(tmpdb):
     assert p.discarded_item is None
     assert p.current == (5, 11, 12)
     assert p.current_reversed is None
+
+
+def test_recursive_comparison():
+    r = recursive_comparison(['"A"', '"B"'], range(1, 3))
+    assert r == """("A" > 1 or ("A" = 1 and "B" > 2))"""
+    r = recursive_comparison(['"A"', '"B"', '"C"'], range(1, 4))
+    assert (
+        r
+        == """("A" > 1 or ("A" = 1 and "B" > 2) or ("A" = 1 and "B" = 2 and "C" > 3))"""
+    )
+    r = recursive_comparison(['"A"', '"B"', '"C"', '"D"'], range(1, 5))
+    assert (
+        r
+        == """("A" > 1 or ("A" = 1 and "B" > 2) or ("A" = 1 and "B" = 2 and "C" > 3) or ("A" = 1 and "B" = 2 and "C" = 3 and "D" > 4))"""
+    )
