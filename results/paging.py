@@ -77,7 +77,7 @@ def recursive_comparison(a, b):
     return f"({a[0]} > {b[0]} or {or_statement})"
 
 
-def make_bookmark_where_clause(cols, bookmark, backwards=False, postgres=True):
+def make_bookmark_where_clause(cols, bookmark, backwards=False, supports_row=True):
     if bookmark is None:
         return ""
 
@@ -85,7 +85,7 @@ def make_bookmark_where_clause(cols, bookmark, backwards=False, postgres=True):
 
     b, a = zip(*pairslist)
     if len(a) > 1 or len(b) > 1:
-        if postgres:
+        if supports_row:
             a, b = ", ".join(a), ", ".join(b)
             return f"where row({a}) > row({b})"
         else:
@@ -99,13 +99,15 @@ def paging_params(cols, bookmark):
     return dict(zip_longest(names, bookmark or []))
 
 
-def paging_wrapped_query(query, ordering, bookmark, per_page, backwards, use_top=False):
+def paging_wrapped_query(
+    query, ordering, bookmark, per_page, backwards, use_top=False, supports_row=True
+):
     cols = parse_ordering(ordering)
     if backwards:
         cols = reversed_ordering(cols)
 
     bookmark_clause = make_bookmark_where_clause(
-        cols, bookmark, backwards, postgres=not use_top
+        cols, bookmark, backwards, supports_row=supports_row
     )
     order_list = ordering_from_parsed(cols)
     order_by = f"order by {order_list}"
