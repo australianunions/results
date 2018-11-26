@@ -113,7 +113,7 @@ class procs:
 class db(SchemaManagement):
     def __init__(self, *args, **kwargs):
         self._args = args
-        if args[0].startswith("postgresql"):
+        if args and args[0].startswith("postgres"):
             kwargs.setdefault("use_batch_mode", True)
         self._kwargs = kwargs
 
