@@ -20,6 +20,7 @@ migra = "*"
 furl = "*"
 chardet = "*"
 pendulum = "*"
+black = "^18.3-alpha.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
