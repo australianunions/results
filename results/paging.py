@@ -84,17 +84,14 @@ def make_bookmark_where_clause(cols, bookmark, backwards=False, postgres=True):
     pairslist = bind_pairs_iter(cols, bookmark, swap_on_descending=True)
 
     b, a = zip(*pairslist)
-    a, b = ", ".join(a), ", ".join(b)
-    if "," in a + b:
+    if len(a) > 1 or len(b) > 1:
         if postgres:
+            a, b = ", ".join(a), ", ".join(b)
             return f"where row({a}) > row({b})"
         else:
-            a_split = a.split(",")
-            b_split = b.split(",")
-
-            return f"where {recursive_comparison(a_split, b_split)}"
+            return f"where {recursive_comparison(a, b)}"
     else:
-        return f"where {a} > {b}"
+        return f"where {a[0]} > {b[0]}"
 
 
 def paging_params(cols, bookmark):
