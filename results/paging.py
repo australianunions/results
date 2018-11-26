@@ -58,18 +58,40 @@ def bind_pairs_iter(cols, bookmark, swap_on_descending=False):
             yield bind, name
 
 
-def make_bookmark_where_clause(cols, bookmark, backwards=False):
+def generate_or_statement(a, b, a_compared, b_compared):
+    if a and b:
+        a_first, b_first = a[0], b[0]
+        or_statement = generate_or_statement(
+            a[1:], b[1:], a_compared + [a[0]], b_compared + [b[0]]
+        )
+        equalities = [f"{x} = {y}" for x, y in zip(a_compared, b_compared)]
+        equalities_joined = " and ".join(equalities)
+        if or_statement:
+            return f"({equalities_joined} and {a_first} > {b_first}) or {or_statement}"
+        else:
+            return f"({equalities_joined} and {a_first} > {b_first})"
+
+
+def recursive_comparison(a, b):
+    or_statement = generate_or_statement(a[1:], b[1:], [a[0]], [b[0]])
+    return f"({a[0]} > {b[0]} or {or_statement})"
+
+
+def make_bookmark_where_clause(cols, bookmark, backwards=False, supports_row=True):
     if bookmark is None:
         return ""
 
     pairslist = bind_pairs_iter(cols, bookmark, swap_on_descending=True)
 
     b, a = zip(*pairslist)
-    a, b = ", ".join(a), ", ".join(b)
-    if "," in a + b:
-        return f"where row({a}) > row({b})"
+    if len(a) > 1 or len(b) > 1:
+        if supports_row:
+            a, b = ", ".join(a), ", ".join(b)
+            return f"where row({a}) > row({b})"
+        else:
+            return f"where {recursive_comparison(a, b)}"
     else:
-        return f"where {a} > {b}"
+        return f"where {a[0]} > {b[0]}"
 
 
 def paging_params(cols, bookmark):
@@ -77,12 +99,16 @@ def paging_params(cols, bookmark):
     return dict(zip_longest(names, bookmark or []))
 
 
-def paging_wrapped_query(query, ordering, bookmark, per_page, backwards, use_top=False):
+def paging_wrapped_query(
+    query, ordering, bookmark, per_page, backwards, use_top=False, supports_row=True
+):
     cols = parse_ordering(ordering)
     if backwards:
         cols = reversed_ordering(cols)
 
-    bookmark_clause = make_bookmark_where_clause(cols, bookmark, backwards)
+    bookmark_clause = make_bookmark_where_clause(
+        cols, bookmark, backwards, supports_row=supports_row
+    )
     order_list = ordering_from_parsed(cols)
     order_by = f"order by {order_list}"
     if use_top:

@@ -67,10 +67,11 @@ class transaction:
         backwards,
         *args,
         use_top=False,
+        supports_row=True,
         **kwargs,
     ):
         query, page_params = paging_wrapped_query(
-            query, ordering, bookmark, per_page, backwards, use_top
+            query, ordering, bookmark, per_page, backwards, use_top, supports_row
         )
 
         argslist = list(args)
