@@ -9,7 +9,7 @@ lint:
 	flake8 .
 
 fmt:
-	isort -rc .
+	isort -rc . --skip .venv
 	black .
 
 gitclean:
