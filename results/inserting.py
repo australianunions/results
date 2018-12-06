@@ -1,5 +1,8 @@
 import string
 
+from .fileutil import is_mapping
+from .resultset import resultproxy_to_results
+
 INSERT = """
     insert into
         {table} ({colspec})
@@ -18,6 +21,7 @@ INSERT_UPSERT = """
     on conflict ({upsertkeyspec})
     do update set
         {upsertspec}
+
 """
 
 
@@ -38,11 +42,16 @@ def valid(key):
     return v
 
 
-def insert(s, table, rowslist, upsert_on=None):
-    if not rowslist:
+def insert(s, table, rows, upsert_on=None, returning=None):
+    if is_mapping(rows):
+        rows = [rows]
+    if returning is None:
+        returning = not len(rows) > 1
+
+    if not rows:
         raise ValueError("empty list of rows, nothing to upsert")
 
-    keys = [valid(k) for k in rowslist[0].keys()]
+    keys = [valid(k) for k in rows[0].keys()]
 
     colspec = ", ".join([f'"{k}"' for k in keys])
     valuespec = ", ".join(":{}".format(k) for k in keys)
@@ -66,5 +75,8 @@ def insert(s, table, rowslist, upsert_on=None):
             q_upsert = INSERT_UPSERT_DO_NOTHING.format(upsertkeyspec=upsertkeyspec)
 
         q = q + q_upsert
+    if returning:
+        q += " returning *"
 
-    s.execute(q, rowslist)
+    rp = s.execute(q, rows)
+    return resultproxy_to_results(rp)

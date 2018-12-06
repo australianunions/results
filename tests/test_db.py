@@ -111,11 +111,25 @@ def test_db(tmpdb):
     with raises(ValueError):
         other.insert("t", [{",x": 2, "y": "b"}])
 
-    other.insert("t", [dict(x=2, y="b")])
+    inserted = other.insert("t", dict(x=2, y="b"))
+    inserted = inserted.one()
+    assert inserted.x == 2
+    assert inserted.y == "b"
 
-    other.insert(
+    inserted = other.insert(
         "t", [dict(x=1, y="a"), dict(x=2, y="a"), dict(x=4, y="a")], upsert_on=["x"]
     )
+    assert inserted is None
+
+    inserted = other.insert(
+        "t",
+        [dict(x=1, y="a"), dict(x=2, y="a"), dict(x=4, y="a")],
+        upsert_on=["x"],
+        returning=True,
+    )
+    inserted = inserted.one()
+    assert inserted.x == 4
+    assert inserted.y == "a"
 
     assert len(other.ss("select * from t")) == 3
 

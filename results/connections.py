@@ -8,20 +8,7 @@ from sqlbag import S, raw_execute
 from .inserting import insert
 from .migration import SchemaManagement
 from .paging import Paging, paging_wrapped_query
-from .resultset import Results
-
-
-def resultproxy_to_results(rp):
-
-    if rp.returns_rows:
-        cols = rp.context.cursor.description
-        keys = [c[0] for c in cols]
-
-        r = Results(rp)
-        r._keys_if_empty = keys
-        return r
-    else:
-        return None
+from .resultset import resultproxy_to_results
 
 
 def build_proc_call_query(_proc_name, *args, **kwargs):
@@ -92,8 +79,8 @@ class transaction:
 
         return results
 
-    def insert(self, table, rowlist, upsert_on=None):
-        insert(self.s, table, rowlist, upsert_on)
+    def insert(self, table, rowlist, upsert_on=None, returning=None):
+        return insert(self.s, table, rowlist, upsert_on, returning)
 
 
 class procs:
@@ -151,9 +138,10 @@ class db(SchemaManagement):
         sql = Path(f).read_text()
         return self.paged(sql, *args, **kwargs)
 
-    def insert(self, table, rowlist, upsert_on=None):
+    def insert(self, table, rowlist, upsert_on=None, returning=None):
         with self.transaction() as s:
-            s.insert(table, rowlist, upsert_on=upsert_on)
+            inserted = s.insert(table, rowlist, upsert_on, returning)
+        return inserted
 
     def raw(self, sql):
         with S(*self._args, **self._kwargs) as s:
