@@ -17,14 +17,21 @@ class Result(dict):
         except KeyError:
             raise AttributeError
 
+    def __setattr__(self, name, value):
+        if name == "annotations":
+            object.__setattr__(self, name, value)
+        else:
+            self[name] = value
+
     def __getitem__(self, key):
         if isinstance(key, int):
             return list(self.values())[key]
         return super().__getitem__(key)
 
     def __iter__(self):
-        for x in self.values():
-            yield x
+        for k, v in self.items():
+            if k != "annotations":
+                yield v
 
     def scalar(self):
         return self[0]

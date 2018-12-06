@@ -16,6 +16,18 @@ def results(rows):
     return Results(rows)
 
 
+def resultproxy_to_results(rp):
+    if rp.returns_rows:
+        cols = rp.context.cursor.description
+        keys = [c[0] for c in cols]
+
+        r = Results(rp)
+        r._keys_if_empty = keys
+        return r
+    else:
+        return None
+
+
 class Results(list, AnnotationsMixin):
     def __init__(self, *args, **kwargs):
         try:

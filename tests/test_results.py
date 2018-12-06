@@ -99,6 +99,14 @@ Ice,Cube
     assert r.keys() == []
 
 
+def test_single_result():
+    r = results.Result()
+    r.first_name = "Abc"
+    assert list(r.keys()) == ["first_name"]
+    assert r.first_name == "Abc"
+    assert hasattr(r, "first_name")
+
+
 def test_key_superset():
     r = results.Results([dict(a=1, b=2), dict(b=3, c=4)])
     assert r.keys() == ["a", "b"]
