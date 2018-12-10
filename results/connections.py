@@ -8,8 +8,9 @@ from sqlbag import S, raw_execute
 from .inserting import insert
 from .migration import SchemaManagement
 from .paging import Paging, paging_wrapped_query
-from .resultset import resultproxy_to_results
 from .result import Result
+from .resultset import resultproxy_to_results
+
 
 def build_proc_call_query(_proc_name, *args, **kwargs):
     _proc_name = _proc_name.replace("__", ".")
