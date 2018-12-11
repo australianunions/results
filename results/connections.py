@@ -8,6 +8,7 @@ from sqlbag import S, raw_execute
 from .inserting import insert
 from .migration import SchemaManagement
 from .paging import Paging, paging_wrapped_query
+from .result import Result
 from .resultset import resultproxy_to_results
 
 
@@ -44,6 +45,9 @@ class transaction:
         _resultproxy = self.s.execute(*args, **kwargs)
         results = resultproxy_to_results(_resultproxy)
         return results
+
+    def raw_ex(self, *args, **kwargs):
+        return self.s.execute(*args, **kwargs)
 
     def paged(
         self,
@@ -121,6 +125,11 @@ class db(SchemaManagement):
     def ss(self, *args, **kwargs):
         with self.transaction() as t:
             return t.ex(*args, **kwargs)
+
+    def ss_iter(self, *args, **kwargs):
+        with self.transaction() as t:
+            for row in t.raw_ex(*args, **kwargs):
+                yield Result(row)
 
     def paged(self, *args, **kwargs):
         with self.transaction() as t:
