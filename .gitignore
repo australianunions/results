@@ -43,3 +43,4 @@ scratch
 poetry.lock
 .venv
 .vscode
+pip-wheel-metadata
