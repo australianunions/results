@@ -22,3 +22,7 @@ def resource_stream(subpath):
 
 def resource_data(subpath):
     return resource_stream(subpath).read()
+
+
+def resource_text(subpath, encoding="utf-8"):
+    return resource_stream(subpath).read().decode(encoding)

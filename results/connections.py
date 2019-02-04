@@ -43,7 +43,9 @@ class transaction:
 
     def ex(self, *args, execution_options=None, **kwargs):
         if execution_options:
-            _resultproxy = self.s.connection(execution_options=execution_options).execute(*args, **kwargs)
+            _resultproxy = self.s.connection(
+                execution_options=execution_options
+            ).execute(*args, **kwargs)
         else:
             _resultproxy = self.s.execute(*args, **kwargs)
         results = resultproxy_to_results(_resultproxy)
@@ -51,7 +53,9 @@ class transaction:
 
     def raw_ex(self, *args, execution_options=None, **kwargs):
         if execution_options:
-            return self.s.connection(execution_options=execution_options).execute(*args, **kwargs)
+            return self.s.connection(execution_options=execution_options).execute(
+                *args, **kwargs
+            )
         else:
             return self.s.execute(*args, **kwargs)
 

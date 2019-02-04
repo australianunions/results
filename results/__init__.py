@@ -14,7 +14,12 @@ from .openers import (  # noqa
     dicts_from_rows,
 )
 from .uuids import deterministic_uuid  # noqa
-from .resources import resource_path, resource_stream, resource_data  # noqa
+from .resources import (  # noqa
+    resource_path,
+    resource_stream,
+    resource_data,
+    resource_text,
+)
 
 from .itercsv import fast_csv_it  # noqa
 from .cleaning import standardize_key, standardized_key_mapping  # noqa
