@@ -30,7 +30,7 @@ jobs:
             python3 -m venv ~/.venv
             . ~/.venv/bin/activate
 
-            poetry install
+            poetry install -E excel
       - save_cache:
           key: deps1-{{ .Branch }}-{{ checksum "pyproject.toml" }}
           paths:
@@ -64,7 +64,7 @@ jobs:
             poetry config settings.virtualenvs.create false
             python3 -m venv ~/.venv
             . ~/.venv/bin/activate
-            poetry install
+            poetry install -E excel
       - run:
           name: Bump version, build, install
           command: |
