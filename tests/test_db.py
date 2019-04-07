@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from pgnotify import await_pg_notifications
 from pytest import raises
 from sqlalchemy.exc import ProgrammingError
 
@@ -136,3 +137,19 @@ def test_db(tmpdb):
     unique_y = other.ss("select distinct y from t")
     assert len(unique_y) == 1
     assert unique_y.scalar() == "a"
+
+
+def test_pg_notify(tmpdb):
+    db = results.db(tmpdb)
+
+    for n in await_pg_notifications(
+        tmpdb, channels=["channel"], timeout=1, yield_on_timeout=True
+    ):
+
+        if not n:
+            db.pg_notify("channel", "payload")
+
+        else:
+            n.channel == "channel"
+            n.payload == "payload"
+            break

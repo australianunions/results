@@ -29,6 +29,7 @@ pyyaml = "*"
 flake8 = "*"
 pytest-cov = "*"
 black = {python=">3.6", version=">=18.9b0", allow_prereleases=true}
+pgnotify = "*"
 
 [tool.poetry.extras]
 excel = ["xlrd", "openpyxl", "xlsxwriter"]

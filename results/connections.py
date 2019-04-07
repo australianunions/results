@@ -96,6 +96,14 @@ class transaction:
     def insert(self, table, rowlist, upsert_on=None, returning=None):
         return insert(self.s, table, rowlist, upsert_on, returning)
 
+    def pg_notify(self, channel, payload=None):
+        self.s.execute(
+            """
+            select pg_notify(:channel, :payload)
+        """,
+            dict(channel=channel, payload=payload),
+        )
+
 
 class procs:
     def __init__(self, db):
@@ -171,3 +179,7 @@ class db(SchemaManagement):
         with S(*self._args, **self._kwargs) as s:
             i = get_inspector(s)
         return i
+
+    def pg_notify(self, channel, payload=None):
+        with self.transaction() as t:
+            return t.pg_notify(channel, payload)
