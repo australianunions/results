@@ -153,3 +153,25 @@ def test_pg_notify(tmpdb):
             n.channel == "channel"
             n.payload == "payload"
             break
+
+
+def test_explain(tmpdb):
+    from results.connections import explain_prefix
+
+    p = explain_prefix(analyze=True)
+    assert p == "EXPLAIN (ANALYZE)"
+    p = explain_prefix(analyze=True, format="json", buffers=True, verbose=True)
+    assert p == "EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON, VERBOSE)"
+
+    db = results.db(tmpdb)
+    explained = db.explain("select 1")
+    col = explained["QUERY PLAN"]
+    joined = "\n".join(col)
+
+    assert joined == "Result  (cost=0.00..0.01 rows=1 width=4)"
+
+    explained = db.explain(
+        "select 1", analyze=True, format="json", buffers=True, verbose=True
+    )
+
+    assert "Plan" in explained.scalar()[0]
