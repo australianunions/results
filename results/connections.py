@@ -36,6 +36,43 @@ class transactionprocs:
         return self.session.ex(query, params)
 
 
+EXPLAIN_DEFAULTS = dict(
+    analyze=False,
+    verbose=False,
+    costs=True,
+    buffers=False,
+    timing=True,
+    format="TEXT",
+    summary=None,
+)
+
+
+def explain_prefix(**kwargs):
+
+    # summary on by default if analyze is on
+    defaults = dict(EXPLAIN_DEFAULTS)
+    defaults["summary"] = defaults["analyze"]
+
+    flags = {
+        k: kwargs.get(k)
+        for k, default in defaults.items()
+        if kwargs.get(k) and kwargs.get(k) != default
+    }
+
+    def make_flag(k, v):
+        if isinstance(v, bool):
+            return k.upper()
+        return f"{k} {v}".upper()
+
+    flags = ", ".join(make_flag(k, v) for k, v in sorted(flags.items()))
+
+    prefix = "EXPLAIN"
+    if flags:
+        prefix += f" ({flags})"
+
+    return prefix
+
+
 class transaction:
     def __init__(self, s):
         self.s = s
@@ -95,6 +132,28 @@ class transaction:
 
     def insert(self, table, rowlist, upsert_on=None, returning=None):
         return insert(self.s, table, rowlist, upsert_on, returning)
+
+    def pg_notify(self, channel, payload=None):
+        return self.ex(
+            """
+            select pg_notify(:channel, :payload)
+        """,
+            dict(channel=channel, payload=payload),
+        )
+
+    def explain(self, *args, **kwargs):
+        args = list(args)
+
+        stmt = args[0]
+
+        prefix = explain_prefix(**kwargs)
+
+        for k in EXPLAIN_DEFAULTS:
+            kwargs.pop(k, None)
+
+        args[0] = f"{prefix} {stmt}"
+        print(args[0])
+        return self.ex(*args, **kwargs)
 
 
 class procs:
@@ -171,3 +230,11 @@ class db(SchemaManagement):
         with S(*self._args, **self._kwargs) as s:
             i = get_inspector(s)
         return i
+
+    def pg_notify(self, channel, payload=None):
+        with self.transaction() as t:
+            return t.pg_notify(channel, payload)
+
+    def explain(self, *args, **kwargs):
+        with self.transaction() as t:
+            return t.explain(*args, **kwargs)

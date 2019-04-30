@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from pgnotify import await_pg_notifications
 from pytest import raises
 from sqlalchemy.exc import ProgrammingError
 
@@ -136,3 +137,41 @@ def test_db(tmpdb):
     unique_y = other.ss("select distinct y from t")
     assert len(unique_y) == 1
     assert unique_y.scalar() == "a"
+
+
+def test_pg_notify(tmpdb):
+    db = results.db(tmpdb)
+
+    for n in await_pg_notifications(
+        tmpdb, channels=["channel"], timeout=1, yield_on_timeout=True
+    ):
+
+        if not n:
+            db.pg_notify("channel", "payload")
+
+        else:
+            n.channel == "channel"
+            n.payload == "payload"
+            break
+
+
+def test_explain(tmpdb):
+    from results.connections import explain_prefix
+
+    p = explain_prefix(analyze=True)
+    assert p == "EXPLAIN (ANALYZE)"
+    p = explain_prefix(analyze=True, format="json", buffers=True, verbose=True)
+    assert p == "EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON, VERBOSE)"
+
+    db = results.db(tmpdb)
+    explained = db.explain("select 1")
+    col = explained["QUERY PLAN"]
+    joined = "\n".join(col)
+
+    assert joined == "Result  (cost=0.00..0.01 rows=1 width=4)"
+
+    explained = db.explain(
+        "select 1", analyze=True, format="json", buffers=True, verbose=True
+    )
+
+    assert "Plan" in explained.scalar()[0]
