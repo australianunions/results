@@ -14,9 +14,11 @@ def test_paging(tmpdb):
     db = results.db(tmpdb)
 
     with db.transaction() as t:
+        PER_PAGE = 1
+
         page = t.paged(
             PAGING_QUERY,
-            per_page=1,
+            per_page=PER_PAGE,
             bookmark=(5, 9, 10),
             backwards=True,
             ordering="a, b, c",
@@ -38,6 +40,9 @@ def test_paging(tmpdb):
         assert p.discarded_item == dict(a=1, b=2, c=3)
         assert p.current == (5, 9, 10)
         assert p.current_reversed == (1, 2, 3)
+
+        assert len(page) == PER_PAGE
+        assert page.paging.results == page
 
         page = t.paged(
             PAGING_QUERY,

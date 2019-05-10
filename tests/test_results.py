@@ -31,8 +31,17 @@ def test_empty(tmpdb):
     db = results.db(tmpdb)
     empty = db.ss("select 1 as bollocks limit 0")
     assert empty.keys() == ["bollocks"]
+    empty.delete_key("bollocks")
+    assert empty.keys() == []
+    empty.delete_keys(["nonexistent"])
+    assert empty.keys() == []
 
     assert results.Results([]).keys() == []
+
+    r = db.ss("select 1 as a, 2 as b union select 3, 4")
+    assert r.values_for("a") == [1, 3]
+    assert r.pop("a") == [1, 3]
+    assert r.keys() == ["b"]
 
 
 def test_function_calls(tmpdbwithfunctions):
@@ -125,6 +134,27 @@ def test_clean_whitespace():
 def test_slice(sample):
     r = results.Results(sample)
     assert r[1:2] == results.Results([sample[1]])
+
+
+def test_pop(sample):
+    r_orig = results.Results(sample)
+    r = results.Results(sample)
+
+    assert len(r) == 3
+    popped = r.pop()
+
+    assert popped == r_orig[-1]
+
+    assert len(r) == 2
+
+    popped = r.pop(0)
+
+    assert popped == r_orig[0]
+    assert len(r) == 1
+
+    assert r.keys() == ['First Name ', ' Last_Name']
+
+    assert r.pop('First Name ') == [('Ice',)]
 
 
 def test_hierarchical():
