@@ -13,7 +13,7 @@ csvx = "*"
 sqlbag = ">=0.1.1548994599"
 sqlalchemy = "*"
 xlrd = {version="*", optional=true}
-openpyxl = {version="<2.5.10", optional=true}
+openpyxl = {version="<2.6.3", optional=true}
 xlsxwriter = {version="*", optional=true}
 tabulate = "*"
 markdown = "*"
