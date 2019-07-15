@@ -120,13 +120,16 @@ class Results(list, AnnotationsMixin):
                         row[k] = standardized
 
     def delete_key(self, column=None):
-        for row in self:
-            try:
-                del row[column]
-            except KeyError:
-                pass
+        self.delete_keys([column])
 
     def delete_keys(self, columns=None):
+        if not self:
+            if self._keys_if_empty:
+                for column in columns:
+                    if column in self._keys_if_empty:
+                        self._keys_if_empty.remove(column)
+            return
+
         for row in self:
             for c in columns:
                 try:
@@ -155,6 +158,21 @@ class Results(list, AnnotationsMixin):
             values = list(self.values())
         return values
 
+    def pop(self, column=None, default=None):
+        if column is None:
+            return list.pop(self)
+
+        if isinstance(column, int):
+            return list.pop(self, column)
+
+        values = self.values_for(column=column)
+
+        if column:
+            columns = [column]
+        self.delete_keys(columns)
+
+        return values
+
     def distinct_values(self, column=None, columns=None):
         values = self.values_for(column, columns)
         d = {k: True for k in values}
@@ -169,7 +187,7 @@ class Results(list, AnnotationsMixin):
         return value
 
     def save_csv(self, destination):
-        Path(destination).write_text(self.csv)
+        Path(destination).expanduser().write_text(self.csv)
 
     def save_xlsx(self, destination):
         from xlsxwriter import Workbook

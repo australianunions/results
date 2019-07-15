@@ -99,11 +99,11 @@ class transaction:
     def paged(
         self,
         query,
-        bookmark,
+        *args,
+        bookmark=None,
         ordering,
         per_page,
         backwards,
-        *args,
         use_top=False,
         supports_row=True,
         **kwargs,
@@ -122,7 +122,6 @@ class transaction:
         params.update(page_params)
 
         argslist[0] = params
-
         args = tuple(argslist)
 
         results = self.ex(query, *args, **kwargs)
@@ -152,7 +151,6 @@ class transaction:
             kwargs.pop(k, None)
 
         args[0] = f"{prefix} {stmt}"
-        print(args[0])
         return self.ex(*args, **kwargs)
 
 
