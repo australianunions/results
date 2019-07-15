@@ -152,9 +152,9 @@ def test_pop(sample):
     assert popped == r_orig[0]
     assert len(r) == 1
 
-    assert r.keys() == ['First Name ', ' Last_Name']
+    assert r.keys() == ["First Name ", " Last_Name"]
 
-    assert r.pop('First Name ') == [('Ice',)]
+    assert r.pop("First Name ") == ["Ice"]
 
 
 def test_hierarchical():

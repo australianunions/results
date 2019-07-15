@@ -165,9 +165,7 @@ class Results(list, AnnotationsMixin):
         if isinstance(column, int):
             return list.pop(self, column)
 
-        if isinstance(column, str):
-            columns = [column]
-        values = self.values_for(None, columns)
+        values = self.values_for(column=column)
 
         if column:
             columns = [column]
