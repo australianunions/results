@@ -84,8 +84,15 @@ def from_xlsx(f):
 
     wsheets = list(wb)
 
+    def cell_value(c):
+        try:
+            internal_value = c.internal_value
+            return internal_value or ""
+        except AttributeError:
+            return ""
+
     def xget_row_values(row):
-        return [c.internal_value or "" for c in list(row)]
+        return [cell_value(c) for c in list(row)]
 
     def do_sheet(ws):
         rows = [xget_row_values(_) for _ in list(ws.rows)]
@@ -123,3 +130,20 @@ def from_file(f):
         return OPENERS[extension](f)
     except KeyError:
         raise ValueError(f"cannot open a file with extension: {extension}")
+
+
+def save_xlsx_sheets(sheets_dict, destination):
+    from xlsxwriter import Workbook
+
+    workbook = Workbook(destination)
+
+    for k, sheetdata in sheets_dict.items():
+        worksheet = workbook.add_worksheet(k)
+
+        rowdata = [sheetdata.keys()] + sheetdata
+
+        for r, row in enumerate(rowdata):
+            for c, col in enumerate(row):
+                worksheet.write(r, c, col)
+
+    workbook.close()
