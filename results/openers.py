@@ -56,7 +56,13 @@ def csv_row_tuples_it(f, *args, **kwargs):
             yield row
 
 
+def is_pathlike(f):
+    return isinstance(f, (str, Path))
+
+
 def from_csv(f, *args, **kwargs):
+    if is_pathlike(f):
+        f = Path(f).open(encoding="utf-8-sig")
     return Results(csv_rows_it(f, *args, **kwargs))
 
 

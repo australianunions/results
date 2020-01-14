@@ -44,6 +44,7 @@ def test_fileutil():
     flist = files(FIXTURES / "datafiles", extensions=[".xlsx", ".csv"])
     by_file = from_files(flist)
     assert list(by_file) == [
+        Path("tests/FIXTURES/datafiles/bom-excel.csv"),
         Path("tests/FIXTURES/datafiles/messy.csv"),
         Path("tests/FIXTURES/datafiles/multisheet.xlsx::Sheet1"),
         Path("tests/FIXTURES/datafiles/multisheet.xlsx::Sheet2"),
@@ -69,3 +70,8 @@ def test_xlsx_readwrite(tmpdir):
     xlsxresults = from_file(dest)
 
     assert csvresults == xlsxresults["Sheet1"]
+
+
+def test_csv_bom_handling():
+    csvresults = from_file("tests/FIXTURES/datafiles/bom-excel.csv")
+    assert csvresults.keys()[0] == "a"
