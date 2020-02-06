@@ -1,4 +1,5 @@
-import decimal
+from decimal import Decimal
+from decimal import InvalidOperation as InvalidOp
 from numbers import Number
 
 
@@ -18,7 +19,7 @@ class AnnotationsMixin:
             _max = max(filtered)
             min0 = min(_min, 0.0)
             max0 = max(0.0, _max)
-            _range = decimal.Decimal(max0) - decimal.Decimal(min0)
+            _range = Decimal(max0) - Decimal(min0)
 
             _subclasses_by_type = {}
 
@@ -31,17 +32,17 @@ class AnnotationsMixin:
                 v0, v1 = sorted([0.0, v])
 
                 try:
-                    d = decimal.Decimal(v0) - decimal.Decimal(min0)
-                    start = decimal.Decimal(d) / decimal.Decimal(_range)
-                    h0 = start
-                except ZeroDivisionError:
+                    d = Decimal(v0) - Decimal(min0)
+                    start = Decimal(d) / Decimal(_range)
+                    h0 = float(start)
+                except InvalidOp:
                     h0 = 0.0
 
                 try:
-                    d = decimal.Decimal(v1) - decimal.Decimal(min0)
-                    end = decimal.Decimal(d) / decimal.Decimal(_range)
-                    h1 = end
-                except ZeroDivisionError:
+                    d = Decimal(v1) - Decimal(min0)
+                    end = Decimal(d) / Decimal(_range)
+                    h1 = float(end)
+                except InvalidOp:
                     h1 = 0.0
 
                 datatype = type(v)
