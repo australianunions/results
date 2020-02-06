@@ -1,5 +1,6 @@
-from numbers import Number
 import decimal
+from numbers import Number
+
 
 class AnnotationsMixin:
     def annotate_histogram_amplitudes(self):
