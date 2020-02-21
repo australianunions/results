@@ -86,7 +86,7 @@ def from_xlsx(f):
 
     if isinstance(f, Path):
         f = str(f)
-    wb = load_workbook(filename=f)
+    wb = load_workbook(filename=f, read_only=True)
 
     wsheets = list(wb)
 
