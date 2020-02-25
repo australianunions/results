@@ -72,8 +72,8 @@ def test_xlsx_readwrite(tmpdir):
 
 
 def test_psv():
-    rows = from_file('tests/FIXTURES/datafiles/x.psv')
-    assert rows.keys() == 'A b c'.split()
+    rows = from_file("tests/FIXTURES/datafiles/x.psv")
+    assert rows.keys() == "A b c".split()
 
 
 def test_csv_bom_handling():

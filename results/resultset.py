@@ -183,10 +183,6 @@ class Results(list, AnnotationsMixin):
         f = io.StringIO()
         write_csv_to_filehandle(f, self)
         return f.getvalue()
-        # with csvx.DictWriter(f, lineterminator="\n") as w:
-        #     w.write_dicts(self)
-        #     value = f.getvalue()
-        # return value
 
     def save_csv(self, destination):
         from .openers import write_csv_to_f

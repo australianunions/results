@@ -5,8 +5,6 @@ from sqlbag.pg import use_pendulum_for_time_types  # noqa
 from .cleaning import standardize_key, standardized_key_mapping  # noqa
 from .connections import db  # noqa
 from .fileutil import file_text, files, from_file, from_files  # noqa
-
-# from .itercsv import fast_csv_it  # noqa
 from .openers import (  # noqa
     csv_column_names,
     csv_rows_it,
