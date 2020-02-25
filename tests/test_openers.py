@@ -64,12 +64,16 @@ def test_open_all():
 
 def test_xlsx_readwrite(tmpdir):
     csvresults = from_file("tests/FIXTURES/datafiles/x.csv")
-
     dest = str(tmpdir / "out.xlsx")
     csvresults.save_xlsx(dest)
     xlsxresults = from_file(dest)
 
     assert csvresults == xlsxresults["Sheet1"]
+
+
+def test_psv():
+    rows = from_file('tests/FIXTURES/datafiles/x.psv')
+    assert rows.keys() == 'A b c'.split()
 
 
 def test_csv_bom_handling():
