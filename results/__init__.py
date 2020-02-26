@@ -17,6 +17,7 @@ from .openers import (  # noqa
     from_xlsx,
     save_xlsx_sheets,
     smart_open,
+    sniff_csv_dialect,
 )
 from .resources import (  # noqa
     resource_data,

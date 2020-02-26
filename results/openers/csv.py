@@ -5,22 +5,28 @@ from pathlib import Path
 from ..resultset import Results
 from ..util import is_pathlike
 
+DEFAULT_SNIFF_BYTES = 10 * 1024  # 10kiB
+
 
 def csv_column_names(path):
     return from_csv(path, max_rows=0).keys()
 
 
-def sniff_csv_dialect(f, sniff_bytes=1024, seek_back_to_start=True):
-    first_portion = f.read(sniff_bytes)
+def sniff_csv_dialect(f, sniff_bytes=None, seek_back_to_start=True):
+    sniff_bytes = sniff_bytes or DEFAULT_SNIFF_BYTES
+    data = f.read(sniff_bytes)
 
     if seek_back_to_start:
         f.seek(0)
     sniffer = csv.Sniffer()
-    return sniffer.sniff(first_portion)
+    sniffed = sniffer.sniff(data)
+    return sniffed
 
 
-def csv_raw_rows_it(f, dialect=None, *args, **kwargs):
-    dialect = dialect or sniff_csv_dialect(f)
+def csv_raw_rows_it(f, dialect=None, sniff=False, *args, **kwargs):
+    dialect = dialect
+    if not dialect and sniff:
+        dialect = sniff_csv_dialect(f)
     return csv.DictReader(f, dialect=dialect, *args, **kwargs)
 
 
@@ -31,7 +37,9 @@ def csv_rows_it(f, renamed_keys=None, *args, **kwargs):
         yield row
 
 
-def from_csv(f, *args, dialect=None, encoding=None, max_rows=None, **kwargs):
+def from_csv(
+    f, *args, dialect=None, encoding=None, max_rows=None, sniff=False, **kwargs
+):
     def make_results(reader):
         fieldnames = reader.fieldnames
 
@@ -46,10 +54,10 @@ def from_csv(f, *args, dialect=None, encoding=None, max_rows=None, **kwargs):
         encoding = encoding or "utf-8-sig"
 
         with Path(f).open(encoding=encoding) as f:
-            ri = csv_raw_rows_it(f, *args, dialect=dialect, **kwargs)
+            ri = csv_raw_rows_it(f, *args, dialect=dialect, sniff=sniff, **kwargs)
             return make_results(ri)
     else:
-        ri = csv_raw_rows_it(f, *args, dialect=dialect, **kwargs)
+        ri = csv_raw_rows_it(f, *args, dialect=dialect, sniff=sniff, **kwargs)
         return make_results(ri)
 
 

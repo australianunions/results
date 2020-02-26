@@ -72,7 +72,7 @@ def test_xlsx_readwrite(tmpdir):
 
 
 def test_psv():
-    rows = from_file("tests/FIXTURES/datafiles/x.psv")
+    rows = from_file("tests/FIXTURES/datafiles/x.psv", sniff=True)
     assert rows.keys() == "A b c".split()
 
 

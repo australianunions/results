@@ -103,13 +103,13 @@ OPENERS = {
 }
 
 
-def from_file(f):
+def from_file(f, **kwargs):
     p = Path(f)
 
     extension = p.suffix
 
     try:
-        return OPENERS[extension](f)
+        return OPENERS[extension](f, **kwargs)
     except KeyError:
         raise ValueError(f"cannot open a file with extension: {extension}")
 
