@@ -71,9 +71,15 @@ def test_xlsx_readwrite(tmpdir):
     assert csvresults == xlsxresults["Sheet1"]
 
 
-def test_psv():
-    rows = from_file("tests/FIXTURES/datafiles/x.psv", sniff=True)
-    assert rows.keys() == "A b c".split()
+def test_psv_tsv():
+    extensions = "tsv psv csv".split()
+
+    for ext in extensions:
+        rows = from_file(f"tests/FIXTURES/datafiles/x.{ext}")
+        assert rows.keys() == "A b c".split()
+
+        rows = from_file(f"tests/FIXTURES/datafiles/x.psv", sniff=True)
+        assert rows.keys() == "A b c".split()
 
 
 def test_csv_bom_handling():

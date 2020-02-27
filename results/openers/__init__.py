@@ -9,6 +9,8 @@ from .csv import (  # noqa
     csv_column_names,
     csv_rows_it,
     from_csv,
+    from_psv,
+    from_tsv,
     sniff_csv_dialect,
     write_csv_to_f,
     write_csv_to_filehandle,
@@ -98,8 +100,8 @@ OPENERS = {
     ".xlsx": from_xlsx,
     ".xls": from_xls,
     ".csv": from_csv,
-    ".tsv": from_csv,
-    ".psv": from_csv,
+    ".tsv": from_tsv,
+    ".psv": from_psv,
 }
 
 

@@ -61,6 +61,19 @@ def from_csv(
         return make_results(ri)
 
 
+def from_psv(f, *args, dialect=None, **kwargs):
+    class PSVDialect(csv.excel):
+        delimiter = "|"
+
+    dialect = dialect or PSVDialect()
+    return from_csv(f, *args, dialect=dialect, **kwargs)
+
+
+def from_tsv(f, *args, dialect=None, **kwargs):
+    dialect = dialect or csv.excel_tab()
+    return from_csv(f, *args, dialect=dialect, **kwargs)
+
+
 def write_csv_to_filehandle(f, rows, **kwargs):
     try:
         first_row = rows[0]
