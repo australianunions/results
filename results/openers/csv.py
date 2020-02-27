@@ -54,11 +54,15 @@ def from_csv(
         encoding = encoding or "utf-8-sig"
 
         with Path(f).open(encoding=encoding) as f:
-            ri = csv_raw_rows_it(f, *args, dialect=dialect, sniff=sniff, **kwargs)
-            return make_results(ri)
+            rows_iterator = csv_raw_rows_it(
+                f, *args, dialect=dialect, sniff=sniff, **kwargs
+            )
+            return make_results(rows_iterator)
     else:
-        ri = csv_raw_rows_it(f, *args, dialect=dialect, sniff=sniff, **kwargs)
-        return make_results(ri)
+        rows_iterator = csv_raw_rows_it(
+            f, *args, dialect=dialect, sniff=sniff, **kwargs
+        )
+        return make_results(rows_iterator)
 
 
 def from_psv(f, *args, dialect=None, **kwargs):
