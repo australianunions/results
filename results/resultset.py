@@ -1,9 +1,6 @@
 import io
 import itertools
 from numbers import Number
-from pathlib import Path
-
-import csvx
 
 from .annotations import AnnotationsMixin
 from .cleaning import standardized_key_mapping
@@ -181,14 +178,16 @@ class Results(list, AnnotationsMixin):
 
     @property
     def csv(self):
+        from .openers import write_csv_to_filehandle
+
         f = io.StringIO()
-        with csvx.DictWriter(f, lineterminator="\n") as w:
-            w.write_dicts(self)
-            value = f.getvalue()
-        return value
+        write_csv_to_filehandle(f, self)
+        return f.getvalue()
 
     def save_csv(self, destination):
-        Path(destination).expanduser().write_text(self.csv)
+        from .openers import write_csv_to_f
+
+        write_csv_to_f(destination, self)
 
     def save_xlsx(self, destination):
         from xlsxwriter import Workbook

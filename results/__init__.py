@@ -5,18 +5,21 @@ from sqlbag.pg import use_pendulum_for_time_types  # noqa
 from .cleaning import standardize_key, standardized_key_mapping  # noqa
 from .connections import db  # noqa
 from .fileutil import file_text, files, from_file, from_files  # noqa
-from .itercsv import fast_csv_it  # noqa
 from .openers import (  # noqa
     csv_column_names,
+    csv_rows_it,
     detect_enc,
     detect_string_enc,
     dicts_from_rows,
     first_n_lines,
     from_csv,
+    from_psv,
+    from_tsv,
     from_xls,
     from_xlsx,
     save_xlsx_sheets,
     smart_open,
+    sniff_csv_dialect,
 )
 from .resources import (  # noqa
     resource_data,

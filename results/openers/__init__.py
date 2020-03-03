@@ -3,9 +3,18 @@ from itertools import islice
 from pathlib import Path
 
 import chardet
-import csvx
 
-from .resultset import Results
+from ..resultset import Results
+from .csv import (  # noqa
+    csv_column_names,
+    csv_rows_it,
+    from_csv,
+    from_psv,
+    from_tsv,
+    sniff_csv_dialect,
+    write_csv_to_f,
+    write_csv_to_filehandle,
+)
 
 
 def detect_string_enc(contents):
@@ -26,44 +35,7 @@ def smart_open(f):
 
 
 def first_n_lines(stream, n=10):
-    head = list(islice(stream, n))
-    return head
-
-
-def csv_column_names(f, *args, **kwargs):
-    if isinstance(f, str):
-        f = Path(f)
-
-    f = smart_open(f)
-    head = first_n_lines(f, n=1)[0]
-    f.seek(0)
-
-    headf = io.StringIO(head)
-
-    with csvx.OrderedDictReader(headf, *args, **kwargs) as r:
-        return r.fieldnames
-
-
-def csv_rows_it(f, *args, **kwargs):
-    with csvx.OrderedDictReader(f, *args, **kwargs) as r:
-        for row in r:
-            yield row
-
-
-def csv_row_tuples_it(f, *args, **kwargs):
-    with csvx.Reader(f, *args, **kwargs) as r:
-        for row in r:
-            yield row
-
-
-def is_pathlike(f):
-    return isinstance(f, (str, Path))
-
-
-def from_csv(f, *args, **kwargs):
-    if is_pathlike(f):
-        f = Path(f).open(encoding="utf-8-sig")
-    return Results(csv_rows_it(f, *args, **kwargs))
+    return list(islice(stream, n))
 
 
 def dicts_from_rows(rows):
@@ -124,16 +96,22 @@ def from_xls(f, file_contents=None):
     return dict(zip(wb.sheet_names(), (Results(do_sheet(_)) for _ in wsheets)))
 
 
-OPENERS = {".xlsx": from_xlsx, ".xls": from_xls, ".csv": from_csv}
+OPENERS = {
+    ".xlsx": from_xlsx,
+    ".xls": from_xls,
+    ".csv": from_csv,
+    ".tsv": from_tsv,
+    ".psv": from_psv,
+}
 
 
-def from_file(f):
+def from_file(f, **kwargs):
     p = Path(f)
 
     extension = p.suffix
 
     try:
-        return OPENERS[extension](f)
+        return OPENERS[extension](f, **kwargs)
     except KeyError:
         raise ValueError(f"cannot open a file with extension: {extension}")
 
