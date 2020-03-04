@@ -29,8 +29,6 @@ def test_key_renaming():
     with raises(ValueError):
         r2 = r.with_renamed_keys(renames, fail_on_unmapped_keys=True)
 
-    # assert r2.keys() == 'a bb'.split()
-
     r3 = r.with_reordered_keys("b a".split())
     assert r3.keys() == "b a".split()
 
