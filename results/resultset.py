@@ -1,5 +1,6 @@
 import io
 import itertools
+from itertools import product
 from numbers import Number
 
 from .annotations import AnnotationsMixin
@@ -25,6 +26,16 @@ def resultproxy_to_results(rp):
         return None
 
 
+def get_keyfunc(column, columns):
+    def _keyfunc(x):
+        if column:
+            return x[column]
+        if columns:
+            return tuple([x[k] for k in columns])
+
+    return _keyfunc
+
+
 class Results(list, AnnotationsMixin):
     def __init__(self, *args, **kwargs):
         try:
@@ -40,6 +51,46 @@ class Results(list, AnnotationsMixin):
             pass
         self._keys_if_empty = None
         super().__init__(*args, **kwargs)
+
+    def with_join(self, other, column=None, columns=None, left=False, right=False):
+
+        a = self
+        b = other
+
+        a_keys = self.keys()
+        b_keys = other.keys()
+
+        a_other = {_: None for _ in a_keys if _ not in b_keys}
+        b_other = {_: None for _ in b_keys if _ not in a_keys}
+
+        if column is None and columns is None:
+            column = a_keys[0]
+
+        keyfunc = get_keyfunc(column, columns)
+
+        bg = b.grouped_by(column=column, columns=columns)
+        if right:
+            ag = a.grouped_by(column=column, columns=columns)
+
+        def do_it():
+            for a_row in a:
+                k = keyfunc(a_row)
+
+                if k in bg:
+                    for b_row in bg[k]:
+                        yield {**a_row, **b_row}
+
+                elif left:
+                    yield {**a_row, **b_other}
+
+            if right:
+                for b_row in b:
+                    k = keyfunc(b_row)
+
+                    if k not in ag:
+                        yield {**a_other, **b_row}
+
+        return Results(do_it())
 
     def all_keys(self):
         keylist = dict()
@@ -77,9 +128,7 @@ class Results(list, AnnotationsMixin):
                 return mapping[x]
             except KeyError:
                 if fail_on_unmapped_keys:
-                    raise ValueError(
-                        f"unmapped key: {x}"
-                    )
+                    raise ValueError(f"unmapped key: {x}")
                 if keep_unmapped_keys:
                     return x
 
@@ -235,11 +284,7 @@ class Results(list, AnnotationsMixin):
         return Results(self)
 
     def grouped_by(self, column=None, columns=None):
-        def keyfunc(x):
-            if column:
-                return x[column]
-            if columns:
-                return tuple([x[k] for k in columns])
+        keyfunc = get_keyfunc(column, columns)
 
         copied = Results(self)
 
