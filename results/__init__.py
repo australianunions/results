@@ -17,7 +17,6 @@ from .openers import (  # noqa
     from_tsv,
     from_xls,
     from_xlsx,
-    save_xlsx_sheets,
     smart_open,
     sniff_csv_dialect,
 )
@@ -29,12 +28,14 @@ from .resources import (  # noqa
 )
 from .result import Result  # noqa
 from .resultset import Results  # noqa
+from .saving import save_xlsx  # noqa
 from .sqlutil import create_table_statement  # noqa
 from .typeguess import (  # noqa
     guess_column_type,
     guess_sql_column_type,
     guess_value_type,
 )
+from .util import noneslarger, nonessmaller, trunc  # noqa
 from .uuids import deterministic_uuid  # noqa
 
 log.set_null_handler()

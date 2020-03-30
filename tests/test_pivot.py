@@ -134,3 +134,9 @@ def test_badcase():
     assert pivoted == EXPECTED
 
     assert pivoted.keys() == ["year", "state", "Pink", "Magenta", "Yellow", "Orange"]
+
+
+def test_transpose():
+    original = results.Results([dict(a="c", b="d"), dict(a="e", b="f")])
+    t = original.transposed()
+    assert t == results.Results([{"a": "b", "c": "d", "e": "f"}])
