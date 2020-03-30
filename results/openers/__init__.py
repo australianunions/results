@@ -53,14 +53,14 @@ def dicts_from_rows(rows):
     return list(it())
 
 
-def from_xlsx(f):
+def from_xlsx(f, max_rows=None):
     from openpyxl import load_workbook
 
     if isinstance(f, Path):
         f = str(f)
-    wb = load_workbook(filename=f, read_only=True)
+    wb = load_workbook(filename=f, read_only=True, data_only=True)
 
-    wsheets = list(wb)
+    wsheets = [ws for ws in wb]
 
     def cell_value(c):
         try:
@@ -73,7 +73,12 @@ def from_xlsx(f):
         return [cell_value(c) for c in list(row)]
 
     def do_sheet(ws):
-        rows = [xget_row_values(_) for _ in list(ws.rows)]
+        if max_rows is None:
+            rows = list(ws.rows)
+        else:
+            rows = list(islice(ws.rows, max_rows))
+
+        rows = [xget_row_values(_) for _ in list(rows)]
         return dicts_from_rows(rows)
 
     return dict(zip(wb.sheetnames, (Results(do_sheet(_)) for _ in wsheets)))
@@ -113,21 +118,6 @@ def from_file(f, **kwargs):
     try:
         return OPENERS[extension](f, **kwargs)
     except KeyError:
+        if kwargs.get("sniff"):
+            return from_csv(f, **kwargs)
         raise ValueError(f"cannot open a file with extension: {extension}")
-
-
-def save_xlsx_sheets(sheets_dict, destination):
-    from xlsxwriter import Workbook
-
-    workbook = Workbook(destination)
-
-    for k, sheetdata in sheets_dict.items():
-        worksheet = workbook.add_worksheet(k)
-
-        rowdata = [sheetdata.keys()] + sheetdata
-
-        for r, row in enumerate(rowdata):
-            for c, col in enumerate(row):
-                worksheet.write(r, c, col)
-
-    workbook.close()

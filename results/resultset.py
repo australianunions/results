@@ -1,13 +1,16 @@
 import io
 import itertools
-from itertools import product
+from itertools import groupby
 from numbers import Number
 
 from .annotations import AnnotationsMixin
 from .cleaning import standardized_key_mapping
 from .result import Result
+from .saving import save_xlsx
 from .sqlutil import create_table_statement
 from .typeguess import guess_sql_column_type
+from .util import noneslarger as _noneslarger
+from .util import nonessmaller as _nonessmaller
 
 
 def results(rows):
@@ -26,12 +29,23 @@ def resultproxy_to_results(rp):
         return None
 
 
-def get_keyfunc(column, columns):
+def get_keyfunc(column=None, columns=None, noneslarger=True):
+    if noneslarger is True:
+        f = _noneslarger
+    elif noneslarger is False:
+        f = _nonessmaller
+    elif noneslarger is None:
+
+        def ident(x):
+            return x
+
+        f = ident
+
     def _keyfunc(x):
         if column:
-            return x[column]
+            return f(x[column])
         if columns:
-            return tuple([x[k] for k in columns])
+            return tuple(f(x[k]) for k in columns)
 
     return _keyfunc
 
@@ -52,7 +66,15 @@ class Results(list, AnnotationsMixin):
         self._keys_if_empty = None
         super().__init__(*args, **kwargs)
 
-    def with_join(self, other, column=None, columns=None, left=False, right=False):
+    def with_join(
+        self,
+        other,
+        column=None,
+        columns=None,
+        left=False,
+        right=False,
+        noneslarger=True,
+    ):
 
         a = self
         b = other
@@ -66,29 +88,67 @@ class Results(list, AnnotationsMixin):
         if column is None and columns is None:
             column = a_keys[0]
 
-        keyfunc = get_keyfunc(column, columns)
+        keyfunc = get_keyfunc(column, columns, noneslarger=noneslarger)
 
-        bg = b.grouped_by(column=column, columns=columns)
+        b_grouped = b.grouped_by(
+            column=column, columns=columns, noneslarger=noneslarger
+        )
+
         if right:
-            ag = a.grouped_by(column=column, columns=columns)
+            a_grouped = a.grouped_by(
+                column=column, columns=columns, noneslarger=noneslarger
+            )
 
-        def do_it():
+        def do_join_it():
             for a_row in a:
                 k = keyfunc(a_row)
 
-                if k in bg:
-                    for b_row in bg[k]:
-                        yield {**a_row, **b_row}
+                if noneslarger is not None:
+                    k = k[1]
 
+                if k in b_grouped and k is not None:
+                    for b_row in b_grouped[k]:
+                        yield {**a_row, **b_row}
                 elif left:
                     yield {**a_row, **b_other}
+
+                # if k is None:
+                #     if left:
+                #         yield {**a_row, **b_other}
+                #     continue
+
+                # if k in b_grouped:
+                #     for b_row in b_grouped[k]:
+                #         yield {**a_row, **b_row}
+
+                # elif left:
+                #     yield {**a_row, **b_other}
 
             if right:
                 for b_row in b:
                     k = keyfunc(b_row)
 
-                    if k not in ag:
+                    if noneslarger is not None:
+                        k = k[1]
+
+                    # if k is None:
+                    #     continue
+
+                    if k is None or k not in a_grouped:
                         yield {**a_other, **b_row}
+
+        return Results(do_join_it())
+
+    def transposed(self):
+        first_key, *remainder = self.keys()
+
+        first_values = self[first_key]
+
+        new_keys = (first_key, *first_values)
+
+        def do_it():
+            for k in remainder:
+                yield dict(zip(new_keys, [k, *(self[k])]))
 
         return Results(do_it())
 
@@ -121,7 +181,11 @@ class Results(list, AnnotationsMixin):
         return Results([dict_with_all_keys(_) for _ in self])
 
     def with_renamed_keys(
-        self, mapping, keep_unmapped_keys=True, fail_on_unmapped_keys=False
+        self,
+        mapping,
+        keep_unmapped_keys=True,
+        fail_on_unmapped_keys=False,
+        fail_on_overwrite=True,
     ):
         def renamed_key(x):
             try:
@@ -140,6 +204,25 @@ class Results(list, AnnotationsMixin):
                     if (k_new := renamed_key(k)) is not None  # noqa
                 }
                 yield d
+
+        # overwrite_check
+
+        if fail_on_overwrite:
+            original = self.keys()
+            k_dict = {k: None for k in original}
+
+            for o in original:
+                renamed = renamed_key(o)
+
+                if renamed != o:
+                    if renamed in k_dict:
+                        raise ValueError(
+                            f"renaming {o} to {renamed} would overwrite {renamed}"
+                        )
+
+                k_dict.pop(o)
+                if renamed is not None:
+                    k_dict[renamed] = None
 
         return Results(renamed_it())
 
@@ -259,16 +342,7 @@ class Results(list, AnnotationsMixin):
         write_csv_to_f(destination, self)
 
     def save_xlsx(self, destination):
-        from xlsxwriter import Workbook
-
-        workbook = Workbook(destination)
-        worksheet = workbook.add_worksheet()
-
-        for r, row in enumerate([self.keys()] + self):
-            for c, col in enumerate(row):
-                worksheet.write(r, c, col)
-
-        workbook.close()
+        save_xlsx({"Sheet1": self}, destination)
 
     def keys(self):
         try:
@@ -283,18 +357,46 @@ class Results(list, AnnotationsMixin):
     def copy(self):
         return Results(self)
 
-    def grouped_by(self, column=None, columns=None):
-        keyfunc = get_keyfunc(column, columns)
+    def grouped_by(self, column=None, columns=None, sort=True, noneslarger=True):
+        keyfunc = get_keyfunc(column, columns, noneslarger=noneslarger)
 
         copied = Results(self)
 
-        copied.sort(key=keyfunc)
+        if sort:
+            copied.sort(key=keyfunc)
 
         def grouped_by_it():
-            for k, g in itertools.groupby(copied, keyfunc):
+            for k, g in itertools.groupby(copied, key=keyfunc):
+                if noneslarger is not None:
+                    if columns:
+                        k = tuple(_[1] for _ in k)
+                    else:
+                        k = k[1]
+
                 yield k, Results(g)
 
         return dict(grouped_by_it())
+
+    def ltrsort(self, key=None, reverse=None, noneslarger=True, **kwargs):
+        rev_keys = self.keys()
+
+        if isinstance(reverse, bool):
+            sort_order = {_: reverse for _ in rev_keys}
+        else:
+            reverse = reverse or []
+            reverse = set(reverse)
+            sort_order = {_: _ in reverse for _ in rev_keys}
+
+        sort_order = dict(reversed(sort_order.items()))
+
+        for k, g in groupby(sort_order.items(), key=lambda x: x[1]):
+            g = list(g)
+
+            cols = [_[0] for _ in reversed(g)]
+
+            keyfunc = get_keyfunc(column=None, columns=cols, noneslarger=noneslarger)
+
+            self.sort(reverse=k, key=keyfunc)
 
     def __getitem__(self, x):
         if isinstance(x, slice):
@@ -367,8 +469,10 @@ class Results(list, AnnotationsMixin):
         guessed = self.guessed_sql_column_types()
         return create_table_statement(name, guessed)
 
-    def sort(self, **kwargs):
-        if "key" not in kwargs:
-            kwargs["key"] = lambda x: tuple(x.values())
+    def new_row(self):
+        return Result({k: None for k in self.keys()})
 
-        super().sort(**kwargs)
+    def append_empty_row(self):
+        row = self.new_row()
+        self.append(row)
+        return row

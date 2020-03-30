@@ -78,7 +78,8 @@ def test_psv_tsv():
         rows = from_file(f"tests/FIXTURES/datafiles/x.{ext}")
         assert rows.keys() == "A b c".split()
 
-        rows = from_file(f"tests/FIXTURES/datafiles/x.psv", sniff=True)
+        # confirming sniffing overrides file extension
+        rows = from_file("tests/FIXTURES/datafiles/x.psv", sniff=True)
         assert rows.keys() == "A b c".split()
 
 

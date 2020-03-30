@@ -1,5 +1,7 @@
+from pytest import raises
+
 import results
-from results import standardized_key_mapping
+from results import standardized_key_mapping, trunc
 
 test_keys = {"   abc DE !!!()f": "abc_de_f", "Abc_123": "abc_123"}
 
@@ -13,8 +15,14 @@ def test_key_renaming():
     SAMPLE = dict(a=None, b=None, c=None, d=None)
 
     r = results.Results([SAMPLE])
-
     assert r.keys() == "a b c d".split()
+
+    with raises(ValueError):
+        r.with_renamed_keys({"d": "a"})
+
+    # shouldn't raise
+    r2 = r.with_renamed_keys(dict(a="e", d="a"))
+    assert r2.keys() == "e b c a".split()
 
     renames = dict(a="a", b="bb", c=None,)  # unchanged  # changed  # removed
 
@@ -23,8 +31,6 @@ def test_key_renaming():
 
     r2 = r.with_renamed_keys(renames, keep_unmapped_keys=False)
     assert r2.keys() == "a bb".split()
-
-    from pytest import raises
 
     with raises(ValueError):
         r2 = r.with_renamed_keys(renames, fail_on_unmapped_keys=True)
@@ -42,3 +48,7 @@ def test_key_renaming():
         "b a extra".split(), include_unordered=True, include_nonexistent=True
     )
     assert r3.keys() == "b a extra c d".split()
+
+
+def test_trunc():
+    assert trunc("abcd", 3) == "abc\u2026"
