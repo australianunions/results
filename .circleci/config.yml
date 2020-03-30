@@ -25,7 +25,7 @@ jobs:
           command: |
             sudo pip3 install --upgrade pip
             sudo pip3 install poetry
-            poetry config settings.virtualenvs.create false
+            poetry config virtualenvs.create false
       - run:
           command: |
             python3 -m venv ~/.venv
@@ -62,7 +62,7 @@ jobs:
           name: Install poetry, deps
           command: |
             sudo pip3 install poetry
-            poetry config settings.virtualenvs.create false
+            poetry config virtualenvs.create false
             python3 -m venv ~/.venv
             . ~/.venv/bin/activate
             poetry install -E excel
