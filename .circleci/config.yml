@@ -40,7 +40,7 @@ jobs:
           name: Check formatting
           command: |
             . ~/.venv/bin/activate
-            # make lint
+            make lint
       - run:
           command: |
             . ~/.venv/bin/activate

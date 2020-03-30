@@ -372,6 +372,7 @@ class Results(list, AnnotationsMixin):
             reverse = set(reverse)
             sort_order = {_: _ in reverse for _ in rev_keys}
 
+        # sort from last -> first column
         sort_order = dict(reversed(sort_order.items()))
 
         for k, g in groupby(sort_order.items(), key=lambda x: x[1]):
