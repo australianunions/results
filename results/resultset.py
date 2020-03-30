@@ -112,27 +112,12 @@ class Results(list, AnnotationsMixin):
                 elif left:
                     yield {**a_row, **b_other}
 
-                # if k is None:
-                #     if left:
-                #         yield {**a_row, **b_other}
-                #     continue
-
-                # if k in b_grouped:
-                #     for b_row in b_grouped[k]:
-                #         yield {**a_row, **b_row}
-
-                # elif left:
-                #     yield {**a_row, **b_other}
-
             if right:
                 for b_row in b:
                     k = keyfunc(b_row)
 
                     if noneslarger is not None:
                         k = k[1]
-
-                    # if k is None:
-                    #     continue
 
                     if k is None or k not in a_grouped:
                         yield {**a_other, **b_row}
