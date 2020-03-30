@@ -25,7 +25,7 @@ pendulum = "*"
 pytest = "*"
 isort = "*"
 pyyaml = "*"
-flake8 = "*"
+flake8 = {git="https://github.com/PyCQA/flake8"}
 pytest-cov = "*"
 black = ">=19.10b0"
 pgnotify = "*"

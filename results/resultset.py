@@ -69,28 +69,48 @@ class Results(list, AnnotationsMixin):
 
         return Results([dict_with_all_keys(_) for _ in self])
 
-    def with_renamed_keys(self, mapping):
+    def with_renamed_keys(
+        self, mapping, keep_unmapped_keys=True, fail_on_unmapped_keys=False
+    ):
         def renamed_key(x):
-            if x in mapping:
+            try:
                 return mapping[x]
-            return x
+            except KeyError:
+                if fail_on_unmapped_keys:
+                    raise ValueError(
+                        f"unmapped key: {x}"
+                    )
+                if keep_unmapped_keys:
+                    return x
 
         def renamed_it():
             for row in self:
                 d = {
-                    renamed_key(k): v
+                    k_new: v
                     for k, v in row.items()
-                    if renamed_key(k) is not None
+                    if (k_new := renamed_key(k)) is not None  # noqa
                 }
-                yield Result(d)
+                yield d
 
-        return Results(list(renamed_it()))
+        return Results(renamed_it())
 
     def standardized_key_mapping(self):
         return standardized_key_mapping(self.keys())
 
     def with_standardized_keys(self):
         return self.with_renamed_keys(self.standardized_key_mapping())
+
+    def with_reordered_keys(
+        self, ordering, include_nonexistent=False, include_unordered=False
+    ):
+        if include_unordered:
+            oset = set(ordering)
+            ordering = ordering + [k for k in self.keys() if k not in oset]
+
+        return Results(
+            {k: _.get(k) for k in ordering if k in _ or include_nonexistent}
+            for _ in self
+        )
 
     def strip_values(self):
         for row in self:
@@ -301,3 +321,9 @@ class Results(list, AnnotationsMixin):
     def guessed_create_table_statement(self, name):
         guessed = self.guessed_sql_column_types()
         return create_table_statement(name, guessed)
+
+    def sort(self, **kwargs):
+        if "key" not in kwargs:
+            kwargs["key"] = lambda x: tuple(x.values())
+
+        super().sort(**kwargs)
