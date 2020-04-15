@@ -25,11 +25,11 @@ pendulum = "*"
 pytest = "*"
 isort = "*"
 pyyaml = "*"
-flake8 = "*"
 pyflakes = "*"
 pytest-cov = "*"
 black = ">=19.10b0"
 pgnotify = "*"
+flake8 = "^3.7.9"
 
 [tool.poetry.extras]
 excel = ["xlrd", "openpyxl", "xlsxwriter"]
