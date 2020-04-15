@@ -184,9 +184,9 @@ class Results(list, AnnotationsMixin):
         def renamed_it():
             for row in self:
                 d = {
-                    k_new: v
+                    renamed_key(k): v
                     for k, v in row.items()
-                    if (k_new := renamed_key(k)) is not None  # noqa
+                    if renamed_key(k) is not None  # noqa
                 }
                 yield d
 
