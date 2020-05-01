@@ -2,7 +2,8 @@ from pathlib import Path
 
 
 def is_pathlike(f):
-    return isinstance(f, (str, Path))
+    # return true if this is a pathlib or py.path object
+    return isinstance(f, (str, Path)) or hasattr(f, 'read_text')
 
 
 def noneslarger(x):
