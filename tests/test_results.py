@@ -98,7 +98,7 @@ Ice,Cube
 
     assert r.csv == EXPECTED_CSV
 
-    outpath = tmpdir / "test.csv"
+    outpath = f"{tmpdir}/test.csv"
     r.save_csv(outpath)
     assert Path(outpath).read_text() == EXPECTED_CSV
 
